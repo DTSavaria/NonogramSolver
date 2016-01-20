@@ -9,16 +9,21 @@ var Solver = function (rows, columns) {
 };
 
 Solver.prototype.solve = function () {
-    alert("I'm gonna solve it. \n"
-            + "r: " + this.vectorToString(this.rows) + "\n"
-            + "c: " + this.vectorToString(this.columns));
 };
 
-Solver.prototype.vectorToString = function (vector) {
+Solver.prototype.rowsToString = function () {
+    return this.vectorToString(this.rows, 2);
+};
+
+Solver.prototype.columnsToString = function () {
+    return this.vectorToString(this.columns, 2);
+};
+
+Solver.prototype.vectorToString = function (vector, depth) {
     var toReturn = "[";
     vector.forEach(function (entry) {
-        if (entry instanceof Array) {
-            toReturn += this.vectorToString(entry);
+        if (entry instanceof Array && depth > 1) {
+            toReturn += this.vectorToString(entry, depth - 1);
         } else {
             toReturn += entry;
         }
