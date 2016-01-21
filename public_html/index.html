@@ -25,6 +25,8 @@ Released under the MIT license
                     + "<p>rows: " + solver.rowsToString() + "</p>"
                     + "<p>columns: " + solver.columnsToString() + "</p>";
 
+            message.innerHTML += "<p>" + solver.puzzleToGridString("<table border='1'>", "</table>", "<tr>", "</tr>", "<td>", "</td>") + "</p>";
+
         </script>
     </body>
 </html>
