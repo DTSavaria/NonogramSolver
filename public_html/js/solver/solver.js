@@ -204,7 +204,7 @@ Solver.prototype.puzzleToGridString = function (
             toReturn += startElement;
             switch (this.solution[j][i]) {
                 case Solver.UNKNOWN:
-                    toReturn += "?";
+                    toReturn += " ";
                     break;
                 case Solver.FILLED:
                     toReturn += "X";
