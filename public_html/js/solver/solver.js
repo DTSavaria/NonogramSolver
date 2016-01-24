@@ -3,28 +3,69 @@
  * Released under the MIT license
  */
 
-var EMPTY = 1;
-var FILLED = 2;
-var UNKNOWN = 3;
-
 var Solver = function (rows, columns) {
     this.rows = rows;
     this.columns = columns;
+    this.rowPossibilities = [];
+    this.columnPossibilities = [];
+    this.solution = new Array(this.rows.length);
+    for (var i = 0; i < this.solution.length; i++) {
+        this.solution[i] = new Array(this.columns.length);
+        for (var j = 0; j < this.solution[i].length; j++) {
+            this.solution[i][j] = Solver.UNKNOWN;
+        }
+    }
 };
 
-Solver.prototype.solve = function () {
-    var rowPossibilities = [];
-    this.rows.forEach(function (row) {
-        rowPossibilities.push(assemblePossibilities(row, this.columns.length));
-    });
+Solver.EMPTY = 1;
+Solver.FILLED = 2;
+Solver.UNKNOWN = 3;
 
-    var columnPossibilities = [];
+Solver.prototype.solve = function () {
+    this.rowPossibilities = [];
+    this.rows.forEach(function (row) {
+        this.rowPossibilities.push(assemblePossibilities(row, this.columns.length));
+    }, this);
+
+    this.columnPossibilities = [];
     this.columns.forEach(function (column) {
-        columnPossibilities.push(assemblePossibilities(column, this.rows.length));
-    });
+        this.columnPossibilities.push(assemblePossibilities(column, this.rows.length));
+    }, this);
+
+    this.fillSolutionFromPossibilities();
 
     //@TODO...
 };
+
+Solver.prototype.fillSolutionFromPossibilities = function () {
+    for (var i = 0; i < this.solution.length; i++) {
+        for (var j = 0; j < this.solution[i].length; j++) {
+            if (this.solution[i][j] === Solver.UNKNOWN) {
+                var answer = findCommonPossibility(this.columnPossibilities[i], j);
+                if (answer !== Solver.UNKNOWN) {
+                    this.solution[i][j] = answer;
+                }
+            }
+            if (this.solution[i][j] === Solver.UNKNOWN) {
+                var answer = findCommonPossibility(this.rowPossibilities[j], i);
+                if (answer !== Solver.UNKNOWN) {
+                    this.solution[i][j] = answer;
+                }
+            }
+        }
+    }
+};
+
+function findCommonPossibility(possibilities, index) {
+    var toReturn = possibilities[0][index];
+    for (var i = 0; i < possibilities.length; i++) {
+        if (possibilities[i][index] !== toReturn) {
+            toReturn = Solver.UNKNOWN;
+            break;
+        }
+    }
+    return toReturn;
+}
 
 /**
  * Creates all of the possible solutions for a given row or column.
@@ -81,12 +122,12 @@ function createPossibilities(data, empties) {
         var copy = data.slice(0);
         for (var i = 0; i < empty.length; i++) {
             while (empty[i] > 0) {
-                possibility.push(EMPTY);
+                possibility.push(Solver.EMPTY);
                 empty[i]--;
             }
             if (i < copy.length) {
                 while (copy[i] > 0) {
-                    possibility.push(FILLED);
+                    possibility.push(Solver.FILLED);
                     copy[i]--;
                 }
             }
@@ -146,7 +187,7 @@ Solver.prototype.puzzleToGridString = function (
     for (var i = 0; i < columnMatrix[0].length; i++) {
         toReturn += startRow;
         for (var j = 0; j < rowLength; j++) {
-            toReturn += startElement + endElement;
+            toReturn += startElement + ' ' + endElement;
         }
         columnMatrix.forEach(function (column) {
             toReturn += startElement + column[i] + endElement;
@@ -154,16 +195,28 @@ Solver.prototype.puzzleToGridString = function (
         toReturn += endRow;
     }
 
-    rowMatrix.forEach(function (row) {
+    for (var i = 0; i < rowMatrix.length; i++) {
         toReturn += startRow;
-        row.forEach(function (element) {
+        rowMatrix[i].forEach(function (element) {
             toReturn += startElement + element + endElement;
         });
-        for (var i = 0; i < columnMatrix.length; i++) {
-            toReturn += startElement + endElement;
+        for (var j = 0; j < this.solution[i].length; j++) {
+            toReturn += startElement;
+            switch (this.solution[j][i]) {
+                case Solver.UNKNOWN:
+                    toReturn += "?";
+                    break;
+                case Solver.FILLED:
+                    toReturn += "X";
+                    break;
+                case Solver.EMPTY:
+                    toReturn += "-";
+                    break;
+            }
+            toReturn += endElement;
         }
         toReturn += endRow;
-    });
+    }
 
     toReturn += endGrid;
 
