@@ -85,7 +85,7 @@ Puzzle.prototype.toGridString = function (
             toReturn += startElement + ' ' + endElement;
         }
         columnMatrix.forEach(function (column) {
-            toReturn += startElement + column[i] + endElement;
+            toReturn += startElement + padTwo(column[i]) + endElement;
         });
         toReturn += endRow;
     }
@@ -93,7 +93,7 @@ Puzzle.prototype.toGridString = function (
     for (var i = 0; i < rowMatrix.length; i++) {
         toReturn += startRow;
         rowMatrix[i].forEach(function (element) {
-            toReturn += startElement + element + endElement;
+            toReturn += startElement + padTwo(element) + endElement;
         });
         for (var j = 0; j < this.solution[i].length; j++) {
             toReturn += startElement;
@@ -186,4 +186,9 @@ function vectorToMatrix(vector) {
         matrix.push(vector);
     });
     return matrix;
+}
+
+function padTwo(numberLessThan100) {
+    var pad = "00";
+    return (pad+numberLessThan100).slice(-pad.length);
 }
