@@ -3,8 +3,15 @@
  * Released under the MIT license
  */
 
+/**
+ *
+ * @param {Puzzle} puzzle
+ * @returns {Solver}
+ */
 var Solver = function (puzzle) {
     this.puzzle = puzzle;
+    this.rowPossibilities = [];
+    this.columnPossibilities = [];
 };
 
 Solver.prototype.solve = function () {
@@ -20,28 +27,57 @@ Solver.prototype.solve = function () {
                 this.puzzle.getColumn(col), this.puzzle.getHeight()));
     }
 
-    this.fillSolutionFromPossibilities();
+    var keepGoing = true;
+    while (keepGoing) {
+        keepGoing = this.fillSolutionFromPossibilities();
+        this.removeImpossibilities();
+    }
+};
 
-    //@TODO...
+Solver.prototype.removeImpossibilities = function () {
+    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
+        for (var row = 0; row < this.puzzle.getRowCount(); row++) {
+            var answer = this.puzzle.getSolutionAt(col, row);
+            if (answer !== Puzzle.UNKNOWN) {
+                var possSet = this.columnPossibilities[col];
+                for (var poss = possSet.length - 1; poss >= 0; poss--) {
+                    if (answer !== possSet[poss][row]) {
+                        possSet.splice(poss, 1);
+                    }
+                }
+
+                possSet = this.rowPossibilities[row];
+                for (var poss = possSet.length - 1; poss >= 0; poss--) {
+                    if (answer !== possSet[poss][col]) {
+                        possSet.splice(poss, 1);
+                    }
+                }
+            }
+        }
+    }
 };
 
 Solver.prototype.fillSolutionFromPossibilities = function () {
+    var updated = false;
     for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
         for (var row = 0; row < this.puzzle.getRowCount(); row++) {
             if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
                 var answer = findCommonPossibility(this.columnPossibilities[col], row);
                 if (answer !== Puzzle.UNKNOWN) {
                     this.puzzle.setSolutionAt(col, row, answer);
+                    updated = true;
                 }
             }
             if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
                 var answer = findCommonPossibility(this.rowPossibilities[row], col);
                 if (answer !== Puzzle.UNKNOWN) {
                     this.puzzle.setSolutionAt(col, row, answer);
+                    updated = true;
                 }
             }
         }
     }
+    return updated;
 };
 
 function findCommonPossibility(possibilities, index) {
@@ -75,9 +111,11 @@ function assemblePossibilities(data, totalLength) {
     //segment of filled squares. So variableEmpty is the number of empty squares
     //left over after we take into account the one required empty between each
     //filled segment.
-    var variableEmpty = empty;
+    var variableEmpty;
     if (emptySegments > 2) {
-        variableEmpty -= emptySegments - 2;
+        variableEmpty = empty - (emptySegments - 2);
+    } else {
+        variableEmpty = empty;
     }
 
     //figure out the different ways to distribute the empty squares.
