@@ -3,34 +3,22 @@
  * Released under the MIT license
  */
 
-var Solver = function (rows, columns) {
-    this.rows = rows;
-    this.columns = columns;
-    this.rowPossibilities = [];
-    this.columnPossibilities = [];
-    this.solution = new Array(this.rows.length);
-    for (var i = 0; i < this.solution.length; i++) {
-        this.solution[i] = new Array(this.columns.length);
-        for (var j = 0; j < this.solution[i].length; j++) {
-            this.solution[i][j] = Solver.UNKNOWN;
-        }
-    }
+var Solver = function (puzzle) {
+    this.puzzle = puzzle;
 };
-
-Solver.EMPTY = 1;
-Solver.FILLED = 2;
-Solver.UNKNOWN = 3;
 
 Solver.prototype.solve = function () {
     this.rowPossibilities = [];
-    this.rows.forEach(function (row) {
-        this.rowPossibilities.push(assemblePossibilities(row, this.columns.length));
-    }, this);
+    for (var row = 0; row < this.puzzle.getRowCount(); row++) {
+        this.rowPossibilities.push(assemblePossibilities(
+                this.puzzle.getRow(row), this.puzzle.getWidth()));
+    }
 
     this.columnPossibilities = [];
-    this.columns.forEach(function (column) {
-        this.columnPossibilities.push(assemblePossibilities(column, this.rows.length));
-    }, this);
+    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
+        this.columnPossibilities.push(assemblePossibilities(
+                this.puzzle.getColumn(col), this.puzzle.getHeight()));
+    }
 
     this.fillSolutionFromPossibilities();
 
@@ -38,18 +26,18 @@ Solver.prototype.solve = function () {
 };
 
 Solver.prototype.fillSolutionFromPossibilities = function () {
-    for (var i = 0; i < this.solution.length; i++) {
-        for (var j = 0; j < this.solution[i].length; j++) {
-            if (this.solution[i][j] === Solver.UNKNOWN) {
-                var answer = findCommonPossibility(this.columnPossibilities[i], j);
-                if (answer !== Solver.UNKNOWN) {
-                    this.solution[i][j] = answer;
+    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
+        for (var row = 0; row < this.puzzle.getRowCount(); row++) {
+            if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
+                var answer = findCommonPossibility(this.columnPossibilities[col], row);
+                if (answer !== Puzzle.UNKNOWN) {
+                    this.puzzle.setSolutionAt(col, row, answer);
                 }
             }
-            if (this.solution[i][j] === Solver.UNKNOWN) {
-                var answer = findCommonPossibility(this.rowPossibilities[j], i);
-                if (answer !== Solver.UNKNOWN) {
-                    this.solution[i][j] = answer;
+            if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
+                var answer = findCommonPossibility(this.rowPossibilities[row], col);
+                if (answer !== Puzzle.UNKNOWN) {
+                    this.puzzle.setSolutionAt(col, row, answer);
                 }
             }
         }
@@ -60,7 +48,7 @@ function findCommonPossibility(possibilities, index) {
     var toReturn = possibilities[0][index];
     for (var i = 0; i < possibilities.length; i++) {
         if (possibilities[i][index] !== toReturn) {
-            toReturn = Solver.UNKNOWN;
+            toReturn = Puzzle.UNKNOWN;
             break;
         }
     }
@@ -122,12 +110,12 @@ function createPossibilities(data, empties) {
         var copy = data.slice(0);
         for (var i = 0; i < empty.length; i++) {
             while (empty[i] > 0) {
-                possibility.push(Solver.EMPTY);
+                possibility.push(Puzzle.EMPTY);
                 empty[i]--;
             }
             if (i < copy.length) {
                 while (copy[i] > 0) {
-                    possibility.push(Solver.FILLED);
+                    possibility.push(Puzzle.FILLED);
                     copy[i]--;
                 }
             }
@@ -164,131 +152,3 @@ function setUpEmpty(count, start, segmentCount) {
     return toReturn;
 }
 
-/**
- * Creates a string to represent the puzzle. Right now this is only printing the
- * clues. It should also print the solution so far.
- *
- * @param {type} startGrid
- * @param {type} endGrid
- * @param {type} startRow
- * @param {type} endRow
- * @param {type} startElement
- * @param {type} endElement
- * @returns {Solver.prototype.puzzleToGridString.toReturn}
- */
-Solver.prototype.puzzleToGridString = function (
-        startGrid, endGrid, startRow, endRow, startElement, endElement) {
-    var rowMatrix = this.rowsToMatrix();
-    var rowLength = rowMatrix[0].length;
-    var columnMatrix = this.columnsToMatrix();
-
-    var toReturn = startGrid;
-
-    for (var i = 0; i < columnMatrix[0].length; i++) {
-        toReturn += startRow;
-        for (var j = 0; j < rowLength; j++) {
-            toReturn += startElement + ' ' + endElement;
-        }
-        columnMatrix.forEach(function (column) {
-            toReturn += startElement + column[i] + endElement;
-        });
-        toReturn += endRow;
-    }
-
-    for (var i = 0; i < rowMatrix.length; i++) {
-        toReturn += startRow;
-        rowMatrix[i].forEach(function (element) {
-            toReturn += startElement + element + endElement;
-        });
-        for (var j = 0; j < this.solution[i].length; j++) {
-            toReturn += startElement;
-            switch (this.solution[j][i]) {
-                case Solver.UNKNOWN:
-                    toReturn += " ";
-                    break;
-                case Solver.FILLED:
-                    toReturn += "X";
-                    break;
-                case Solver.EMPTY:
-                    toReturn += "-";
-                    break;
-            }
-            toReturn += endElement;
-        }
-        toReturn += endRow;
-    }
-
-    toReturn += endGrid;
-
-    return toReturn;
-};
-
-/**
- * Creates a dense matrix of the row clues.
- *
- * @returns {Array|vectorToMatrix.matrix}
- */
-Solver.prototype.rowsToMatrix = function () {
-    return vectorToMatrix(this.rows);
-};
-
-/**
- * Creates a dense matrix of the column clues.
- *
- * @returns {Array|vectorToMatrix.matrix}
- */
-Solver.prototype.columnsToMatrix = function () {
-    return vectorToMatrix(this.columns);
-};
-
-/**
- * Prints the column clues to a string.
- *
- * @returns {String}
- */
-Solver.prototype.rowsToString = function () {
-    return vectorToString(this.rows, 2);
-};
-
-/**
- * Prints the row clues to a string.
- *
- * @returns {String}
- */
-Solver.prototype.columnsToString = function () {
-    return vectorToString(this.columns, 2);
-};
-
-function vectorToString(vector, depth) {
-    var toReturn = "[";
-    vector.forEach(function (entry) {
-        if (entry instanceof Array && depth > 1) {
-            toReturn += this.vectorToString(entry, depth - 1);
-        } else {
-            toReturn += entry;
-        }
-        toReturn += ", ";
-    }.bind(this));
-    toReturn = toReturn.slice(0, -2);
-    toReturn += "]";
-    return toReturn;
-}
-
-function vectorToMatrix(vector) {
-    var max = 0;
-    vector.forEach(function (entry) {
-        max = Math.max(max, entry.length);
-    });
-    var matrix = [];
-    vector.forEach(function (entry) {
-        var vector = [];
-        for (var i = 0; i < max - entry.length; i++) {
-            vector.push(0);
-        }
-        entry.forEach(function (element) {
-            vector.push(element);
-        });
-        matrix.push(vector);
-    });
-    return matrix;
-}
