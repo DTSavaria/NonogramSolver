@@ -14,6 +14,10 @@ var Solver = function (puzzle) {
     this.columnPossibilities = [];
 };
 
+/**
+ * Solve the puzzle
+ * @returns {undefined}
+ */
 Solver.prototype.solve = function () {
     this.rowPossibilities = [];
     for (var row = 0; row < this.puzzle.getRowCount(); row++) {
@@ -34,6 +38,11 @@ Solver.prototype.solve = function () {
     }
 };
 
+/**
+ * Compares the solution so far to the current set of possibilities. Removes any
+ * possibilities that are not consistent with the solution.
+ * @returns {undefined}
+ */
 Solver.prototype.removeImpossibilities = function () {
     for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
         for (var row = 0; row < this.puzzle.getRowCount(); row++) {
@@ -57,6 +66,13 @@ Solver.prototype.removeImpossibilities = function () {
     }
 };
 
+/**
+ * Compares all the possibilities of a single row or column at a time. If there
+ * are any squares that are consistent among all possibilities for that row or
+ * column, then set that value in the solution. Returns true if a new square was
+ * set in the solution.
+ * @returns {Boolean}
+ */
 Solver.prototype.fillSolutionFromPossibilities = function () {
     var updated = false;
     for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
@@ -80,6 +96,12 @@ Solver.prototype.fillSolutionFromPossibilities = function () {
     return updated;
 };
 
+/**
+ * A helper function for fillSolutionFromPossibilities
+ * @param {type} possibilities
+ * @param {type} index
+ * @returns {Number}
+ */
 function findCommonPossibility(possibilities, index) {
     var toReturn = possibilities[0][index];
     for (var i = 0; i < possibilities.length; i++) {

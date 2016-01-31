@@ -24,38 +24,90 @@ var Puzzle = function (rows, columns) {
     }
 };
 
+/**
+ * For squares that are empty.
+ * @type Number
+ */
 Puzzle.EMPTY = 1;
+
+/**
+ * For squares that are filled.
+ * @type Number
+ */
 Puzzle.FILLED = 2;
+
+/**
+ * For squares that it is not known if it is empty or filled.
+ */
 Puzzle.UNKNOWN = 3;
 
+/**
+ * Get the number of columns.
+ * @returns {Puzzle.columns.length}
+ */
 Puzzle.prototype.getColumnCount = function () {
     return this.columns.length;
 };
 
+/**
+ * Get the width of the puzzle.
+ * @returns {Puzzle.columns.length}
+ */
 Puzzle.prototype.getWidth = function () {
     return this.getColumnCount();
 };
 
+/**
+ * Get the number of rows.
+ * @returns {Puzzle.rows.length}
+ */
 Puzzle.prototype.getRowCount = function () {
     return this.rows.length;
 };
 
+/**
+ * Get the height of the puzzle.
+ * @returns {Puzzle.rows.length}
+ */
 Puzzle.prototype.getHeight = function () {
     return this.getRowCount();
 };
 
+/**
+ * Get the clues for the given column number. Zero indexed starting from left.
+ * @param {type} number
+ * @returns {type}
+ */
 Puzzle.prototype.getColumn = function (number) {
     return this.columns[number];
 };
 
+/**
+ * Get the clues for the given row number. Zero indexed starting from top.
+ * @param {type} number
+ * @returns {type}
+ */
 Puzzle.prototype.getRow = function (number) {
     return this.rows[number];
 };
 
+/**
+ * Get the solution for the square of the given column and row.
+ * @param {type} column
+ * @param {type} row
+ * @returns {Puzzle.prototype@arr;@arr;solution}
+ */
 Puzzle.prototype.getSolutionAt = function (column, row) {
     return this.solution[column][row];
 };
 
+/**
+ * Set the solution for the square at the given column and row to value.
+ * @param {type} column
+ * @param {type} row
+ * @param {type} value
+ * @returns {undefined}
+ */
 Puzzle.prototype.setSolutionAt = function (column, row, value) {
     this.solution[column][row] = value;
 };
@@ -190,5 +242,5 @@ function vectorToMatrix(vector) {
 
 function padTwo(numberLessThan100) {
     var pad = "00";
-    return (pad+numberLessThan100).slice(-pad.length);
+    return (pad + numberLessThan100).slice(-pad.length);
 }
