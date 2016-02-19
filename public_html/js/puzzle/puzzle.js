@@ -171,6 +171,15 @@ Puzzle.prototype.toGridString = function (
 };
 
 /**
+ * Creates a simple HTML table of the puzzle.
+ *
+ * @returns {type|Solver.prototype.puzzleToGridString.toReturn}
+ */
+Puzzle.prototype.toHtmlTable = function () {
+    return this.toGridString("<table border='1'>", "</table>", "<tr>", "</tr>", "<td>", "</td>");
+};
+
+/**
  * Creates a dense matrix of the row clues.
  *
  * @returns {Array|vectorToMatrix.matrix}
