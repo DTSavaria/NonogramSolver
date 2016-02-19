@@ -30,7 +30,10 @@ Released under the MIT license
 
             var solver = new Solver(puzzle);
 
-            solver.solve();
+            solver.solve(function (column, row, value) {
+                console.log("[" + column + ", " + row +
+                        "] set to " + solutionValueToString(value));
+            });
 
             message.innerHTML += "<p>" + puzzle.toHtmlTable() + "</p>";
 

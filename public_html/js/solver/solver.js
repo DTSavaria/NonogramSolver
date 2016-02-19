@@ -15,10 +15,13 @@ var Solver = function (puzzle) {
 };
 
 /**
- * Solve the puzzle
+ * Solve the puzzle.
+ *
+ * @param {type} updateCallback
  * @returns {undefined}
  */
-Solver.prototype.solve = function () {
+Solver.prototype.solve = function (updateCallback) {
+    this.puzzle.setUpdateCallback(updateCallback);
     this.rowPossibilities = [];
     for (var row = 0; row < this.puzzle.getRowCount(); row++) {
         this.rowPossibilities.push(assemblePossibilities(

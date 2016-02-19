@@ -22,6 +22,7 @@ var Puzzle = function (rows, columns) {
             this.solution[i][j] = Puzzle.UNKNOWN;
         }
     }
+    this.updateCallback = null;
 };
 
 /**
@@ -40,6 +41,10 @@ Puzzle.FILLED = 2;
  * For squares that it is not known if it is empty or filled.
  */
 Puzzle.UNKNOWN = 3;
+
+Puzzle.prototype.setUpdateCallback = function (updateCallback) {
+    this.updateCallback = updateCallback;
+}
 
 /**
  * Get the number of columns.
@@ -110,6 +115,9 @@ Puzzle.prototype.getSolutionAt = function (column, row) {
  */
 Puzzle.prototype.setSolutionAt = function (column, row, value) {
     this.solution[column][row] = value;
+    if (this.updateCallback && typeof (this.updateCallback) === "function") {
+        this.updateCallback(column, row, value);
+    }
 };
 
 /**
@@ -149,17 +157,7 @@ Puzzle.prototype.toGridString = function (
         });
         for (var j = 0; j < this.solution[i].length; j++) {
             toReturn += startElement;
-            switch (this.solution[j][i]) {
-                case Puzzle.UNKNOWN:
-                    toReturn += " ";
-                    break;
-                case Puzzle.FILLED:
-                    toReturn += "X";
-                    break;
-                case Puzzle.EMPTY:
-                    toReturn += "-";
-                    break;
-            }
+            toReturn += solutionValueToString(this.solution[j][i]);
             toReturn += endElement;
         }
         toReturn += endRow;
@@ -214,6 +212,27 @@ Puzzle.prototype.rowsToString = function () {
 Puzzle.prototype.columnsToString = function () {
     return vectorToString(this.columns, 2);
 };
+
+/**
+ * Returns a String representing a value in the solution
+ * @param {type} value
+ * @returns {String}
+ */
+function solutionValueToString(value) {
+    var toReturn = "";
+    switch (value) {
+        case Puzzle.UNKNOWN:
+            toReturn = " ";
+            break;
+        case Puzzle.FILLED:
+            toReturn = "X";
+            break;
+        case Puzzle.EMPTY:
+            toReturn = "-";
+            break;
+    }
+    return toReturn;
+}
 
 function vectorToString(vector, depth) {
     var toReturn = "[";
