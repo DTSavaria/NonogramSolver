@@ -14,28 +14,38 @@ Released under the MIT license
     <body style="font-family: 'Courier New', Courier, monospace;">
         <div>Nonogram Solver</div>
         <div id="message"></div>
+        <div>
+            <p>
+                <input type="button" value="solve" onclick="solveIt()">
+                <input type="button" value="clear" onclick="clearIt()">
+            </p>
+        </div>
+        <div id="puzzle"></div>
         <script>
 
             var rows = [[8], [12], [3, 3], [3, 3], [3, 3], [2, 2, 2, 2], [2, 10, 2], [2, 10, 2], [2, 12, 2], [2, 12, 2], [2, 12, 2], [2, 12, 2], [2, 10, 2], [2, 2, 8, 2], [2, 2, 5, 2], [3, 8, 3], [3, 7, 3], [3, 6, 3], [12], [8]];
             var columns = [[8], [12], [3, 3], [3, 1, 3], [3, 4, 2, 3], [2, 8, 2, 2], [2, 9, 2, 2], [2, 14], [2, 14], [2, 14], [2, 14], [2, 14], [2, 8, 5], [2, 9, 2], [2, 8, 2], [3, 4, 3], [3, 3], [3, 3], [12], [8]];
 
-            var puzzle = new Puzzle(rows, columns);
+            var puzzle = null;
 
             var message = document.getElementById("message");
-            message.innerHTML = "<p> Puzzle loaded:</p>"
-                    + "<p>rows: " + puzzle.rowsToString() + "</p>"
-                    + "<p>columns: " + puzzle.columnsToString() + "</p>";
+            var puzzleDiv = document.getElementById("puzzle");
 
-            message.innerHTML += "<p>" + puzzle.toHtmlTable() + "</p>";
+            clearIt();
 
-            var solver = new Solver(puzzle);
+            function clearIt() {
+                puzzle = new Puzzle(rows, columns);
+                message.innerHTML = "<p> Puzzle loaded:</p>"
+                        + "<p>rows: " + puzzle.rowsToString() + "</p>"
+                        + "<p>columns: " + puzzle.columnsToString() + "</p>";
+                puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+            }
 
-            solver.solve(function (column, row, value) {
-                console.log("[" + column + ", " + row +
-                        "] set to " + solutionValueToString(value));
-            });
-
-            message.innerHTML += "<p>" + puzzle.toHtmlTable() + "</p>";
+            function solveIt() {
+                var solver = new Solver(puzzle);
+                solver.solve(null);
+                puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+            }
 
         </script>
     </body>
