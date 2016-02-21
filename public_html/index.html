@@ -20,6 +20,7 @@ Released under the MIT license
                 <input type="button" value="clear" onclick="clearIt()">
             </p>
         </div>
+        <div>Status: <span id="statusSpan"></span></div>
         <div id="puzzle"></div>
         <script>
 
@@ -30,6 +31,7 @@ Released under the MIT license
 
             var message = document.getElementById("message");
             var puzzleDiv = document.getElementById("puzzle");
+            var statusSpan = document.getElementById("statusSpan");
 
             clearIt();
 
@@ -38,12 +40,23 @@ Released under the MIT license
                 message.innerHTML = "<p> Puzzle loaded:</p>"
                         + "<p>rows: " + puzzle.rowsToString() + "</p>"
                         + "<p>columns: " + puzzle.columnsToString() + "</p>";
+                statusSpan.innerHTML = "Not started.";
                 puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
             }
 
             function solveIt() {
                 var solver = new Solver(puzzle);
-                solver.solve(null);
+                solver.solve(
+                        function () {
+                            puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+                        },
+                        function (status) {
+                            statusSpan.innerHTML = status;
+                        },
+                        function () {
+                            puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+                        }
+                );
                 puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
             }
 

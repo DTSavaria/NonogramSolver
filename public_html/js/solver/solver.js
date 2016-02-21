@@ -10,6 +10,8 @@
  */
 var Solver = function (puzzle) {
     this.puzzle = puzzle;
+    this.statusCallback = null;
+    this.finalCallback = null;
     this.rowPossibilities = [];
     this.columnPossibilities = [];
 };
@@ -17,27 +19,42 @@ var Solver = function (puzzle) {
 /**
  * Solve the puzzle.
  *
- * @param {type} updateCallback
+ * @param {function} solverCallback
+ * @param {function} statusCallback
+ * @param {function} finalCallback
  * @returns {undefined}
  */
-Solver.prototype.solve = function (updateCallback) {
-    this.puzzle.setUpdateCallback(updateCallback);
+Solver.prototype.solve = function (solverCallback, statusCallback, finalCallback) {
+    this.puzzle.setUpdateCallback(solverCallback);
+    this.statusCallback = statusCallback;
+    this.finalCallback = finalCallback;
+
     this.rowPossibilities = [];
-    for (var row = 0; row < this.puzzle.getRowCount(); row++) {
-        this.rowPossibilities.push(assemblePossibilities(
-                this.puzzle.getRow(row), this.puzzle.getWidth()));
-    }
+    this.setupRowIteration(0);
+};
 
-    this.columnPossibilities = [];
-    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
-        this.columnPossibilities.push(assemblePossibilities(
-                this.puzzle.getColumn(col), this.puzzle.getHeight()));
+Solver.prototype.setupRowIteration = function (row) {
+    this.updateStatus("Analyzing row: " + (row + 1) + " / " + this.puzzle.getRowCount());
+    this.rowPossibilities.push(assemblePossibilities(
+            this.puzzle.getRow(row), this.puzzle.getWidth()));
+    var next = row + 1;
+    if (next < this.puzzle.getRowCount()) {
+        setTimeout(this.setupRowIteration.bind(this), 0, next);
+    } else {
+        setTimeout(this.setupColumnIteration.bind(this), 0, 0);
     }
+};
 
-    var keepGoing = true;
-    while (keepGoing) {
-        keepGoing = this.fillSolutionFromPossibilities();
-        this.removeImpossibilities();
+Solver.prototype.setupColumnIteration = function (col) {
+    this.updateStatus("Analyzing column: " + (col + 1) + " / " + this.puzzle.getColumnCount());
+    this.columnPossibilities.push(assemblePossibilities(
+            this.puzzle.getColumn(col), this.puzzle.getHeight()));
+    var next = col + 1;
+    if (next < this.puzzle.getColumnCount()) {
+        setTimeout(this.setupColumnIteration.bind(this), 0, next);
+    } else {
+        this.updateStatus("Filling in solution.");
+        setTimeout(this.fillSolutionFromPossibilitiesIteration.bind(this), 0, 0, 0, false);
     }
 };
 
@@ -46,26 +63,33 @@ Solver.prototype.solve = function (updateCallback) {
  * possibilities that are not consistent with the solution.
  * @returns {undefined}
  */
-Solver.prototype.removeImpossibilities = function () {
-    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
-        for (var row = 0; row < this.puzzle.getRowCount(); row++) {
-            var answer = this.puzzle.getSolutionAt(col, row);
-            if (answer !== Puzzle.UNKNOWN) {
-                var possSet = this.columnPossibilities[col];
-                for (var poss = possSet.length - 1; poss >= 0; poss--) {
-                    if (answer !== possSet[poss][row]) {
-                        possSet.splice(poss, 1);
-                    }
-                }
-
-                possSet = this.rowPossibilities[row];
-                for (var poss = possSet.length - 1; poss >= 0; poss--) {
-                    if (answer !== possSet[poss][col]) {
-                        possSet.splice(poss, 1);
-                    }
-                }
+Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
+    var answer = this.puzzle.getSolutionAt(col, row);
+    if (answer !== Puzzle.UNKNOWN) {
+        var possSet = this.columnPossibilities[col];
+        for (var poss = possSet.length - 1; poss >= 0; poss--) {
+            if (answer !== possSet[poss][row]) {
+                possSet.splice(poss, 1);
             }
         }
+
+        possSet = this.rowPossibilities[row];
+        for (var poss = possSet.length - 1; poss >= 0; poss--) {
+            if (answer !== possSet[poss][col]) {
+                possSet.splice(poss, 1);
+            }
+        }
+    }
+
+    var nextCol = col + 1;
+    var nextRow = row + 1;
+    if (nextRow < this.puzzle.getRowCount()) {
+        setTimeout(this.removeImpossibilitiesIteration.bind(this), 0, col, nextRow);
+    } else if (nextCol < this.puzzle.getColumnCount()) {
+        setTimeout(this.removeImpossibilitiesIteration.bind(this), 0, nextCol, 0);
+    } else {
+        this.updateStatus("Filling in solution.");
+        setTimeout(this.fillSolutionFromPossibilitiesIteration.bind(this), 0, 0, 0, false);
     }
 };
 
@@ -74,33 +98,53 @@ Solver.prototype.removeImpossibilities = function () {
  * are any squares that are consistent among all possibilities for that row or
  * column, then set that value in the solution. Returns true if a new square was
  * set in the solution.
- * @returns {Boolean}
+ *
+ * @param {type} col
+ * @param {type} row
+ * @param {type} updated
+ * @returns {undefined}
  */
-Solver.prototype.fillSolutionFromPossibilities = function () {
-    var updated = false;
-    for (var col = 0; col < this.puzzle.getColumnCount(); col++) {
-        for (var row = 0; row < this.puzzle.getRowCount(); row++) {
-            if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
-                var answer = findCommonPossibility(this.columnPossibilities[col], row);
-                if (answer !== Puzzle.UNKNOWN) {
-                    this.puzzle.setSolutionAt(col, row, answer);
-                    updated = true;
-                }
-            }
-            if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
-                var answer = findCommonPossibility(this.rowPossibilities[row], col);
-                if (answer !== Puzzle.UNKNOWN) {
-                    this.puzzle.setSolutionAt(col, row, answer);
-                    updated = true;
-                }
-            }
+Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, updated) {
+    if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
+        var answer = findCommonPossibility(this.columnPossibilities[col], row);
+        if (answer !== Puzzle.UNKNOWN) {
+            this.puzzle.setSolutionAt(col, row, answer);
+            updated = true;
         }
     }
-    return updated;
+    if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
+        var answer = findCommonPossibility(this.rowPossibilities[row], col);
+        if (answer !== Puzzle.UNKNOWN) {
+            this.puzzle.setSolutionAt(col, row, answer);
+            updated = true;
+        }
+    }
+
+    var nextCol = col + 1;
+    var nextRow = row + 1;
+    if (nextRow < this.puzzle.getRowCount()) {
+        setTimeout(this.fillSolutionFromPossibilitiesIteration.bind(this), 0, col, nextRow, updated);
+    } else if (nextCol < this.puzzle.getColumnCount()) {
+        setTimeout(this.fillSolutionFromPossibilitiesIteration.bind(this), 0, nextCol, 0, updated);
+    } else if (updated) {
+        this.updateStatus("Eliminating impossibilities.");
+        setTimeout(this.removeImpossibilitiesIteration.bind(this), 0, 0, 0);
+    } else {
+        setTimeout(this.updateStatus.bind(this), 0, "Finished");
+        if (this.finalCallback && typeof (this.finalCallback) === "function") {
+            this.finalCallback();
+        }
+    }
+};
+
+Solver.prototype.updateStatus = function (statusMessage) {
+    if (this.statusCallback && typeof (this.statusCallback) === "function") {
+        this.statusCallback(statusMessage);
+    }
 };
 
 /**
- * A helper function for fillSolutionFromPossibilities
+ * A helper function for fillSolutionFromPossibilitiesIteration
  * @param {type} possibilities
  * @param {type} index
  * @returns {Number}
