@@ -33,6 +33,14 @@ Solver.prototype.solve = function (solverCallback, statusCallback, finalCallback
     this.setupRowIteration(0);
 };
 
+/**
+ * Creates all possible solutions for the given row number, then calls this
+ * function for the next row. When there are no more rows it wil call
+ * setupColumIteration
+ *
+ * @param {number} row
+ * @returns {undefined}
+ */
 Solver.prototype.setupRowIteration = function (row) {
     this.updateStatus("Analyzing row: " + (row + 1) + " / " + this.puzzle.getRowCount());
     this.rowPossibilities.push(assemblePossibilities(
@@ -45,6 +53,14 @@ Solver.prototype.setupRowIteration = function (row) {
     }
 };
 
+/**
+ * Creates all possible solutions for the given column number, then calls this
+ * function for the next column. When there are no more columns it wil call
+ * fillSolutionFromPossibilitiesIteration
+ *
+ * @param {number} col
+ * @returns {undefined}
+ */
 Solver.prototype.setupColumnIteration = function (col) {
     this.updateStatus("Analyzing column: " + (col + 1) + " / " + this.puzzle.getColumnCount());
     this.columnPossibilities.push(assemblePossibilities(
@@ -59,8 +75,13 @@ Solver.prototype.setupColumnIteration = function (col) {
 };
 
 /**
- * Compares the solution so far to the current set of possibilities. Removes any
- * possibilities that are not consistent with the solution.
+ * Compares the solution for the given row and column number to the current set
+ * of possibilities. Removes any possibilities that are not consistent with the
+ * solution. Then calls this function for the next row and column. Calls
+ * fillSolutionFromPossibilitiesIteration at the end.
+ *
+ * @param {number} col
+ * @param {number} row
  * @returns {undefined}
  */
 Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
@@ -94,14 +115,14 @@ Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
 };
 
 /**
- * Compares all the possibilities of a single row or column at a time. If there
- * are any squares that are consistent among all possibilities for that row or
- * column, then set that value in the solution. Returns true if a new square was
- * set in the solution.
+ * For a given column and row, compares all the relevant possibilities. If the
+ * possibilities are consistent, then set that value in the solution. Then calls
+ * this function for the next row and column. At the end, calls
+ * removeImpossibilitiesIteration if updated became true.
  *
- * @param {type} col
- * @param {type} row
- * @param {type} updated
+ * @param {number} col
+ * @param {number} row
+ * @param {boolean} updated
  * @returns {undefined}
  */
 Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, updated) {
@@ -137,6 +158,12 @@ Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, up
     }
 };
 
+/**
+ * Sends statusMessage to this.statusCallback
+ *
+ * @param {string} statusMessage
+ * @returns {undefined}
+ */
 Solver.prototype.updateStatus = function (statusMessage) {
     if (this.statusCallback && typeof (this.statusCallback) === "function") {
         this.statusCallback(statusMessage);
@@ -145,8 +172,8 @@ Solver.prototype.updateStatus = function (statusMessage) {
 
 /**
  * A helper function for fillSolutionFromPossibilitiesIteration
- * @param {type} possibilities
- * @param {type} index
+ * @param {Array} possibilities
+ * @param {number} index
  * @returns {Number}
  */
 function findCommonPossibility(possibilities, index) {
@@ -163,7 +190,7 @@ function findCommonPossibility(possibilities, index) {
 /**
  * Creates all of the possible solutions for a given row or column.
  *
- * @param {type} data
+ * @param {Array} data
  * @param {number} totalLength
  * @returns {Array|createPossibilities.toReturn}
  */
@@ -190,7 +217,7 @@ function assemblePossibilities(data, totalLength) {
     //figure out the different ways to distribute the empty squares.
     var e = setUpEmpty(variableEmpty, 0, emptySegments);
 
-    //setUpEmpty only distributes the variable empty squares, this pusts the
+    //setUpEmpty only distributes the variable empty squares, this puts the
     //required squares back in to the count.
     for (var i = 0; i < e.length; i++) {
         for (var j = 1; j < e[i].length - 1; j++) {
