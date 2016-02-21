@@ -30,6 +30,7 @@ Solver.prototype.solve = function (solverCallback, statusCallback, finalCallback
     this.finalCallback = finalCallback;
 
     this.rowPossibilities = [];
+    this.columnPossibilities = [];
     this.setupRowIteration(0);
 };
 
@@ -87,17 +88,17 @@ Solver.prototype.setupColumnIteration = function (col) {
 Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
     var answer = this.puzzle.getSolutionAt(col, row);
     if (answer !== Puzzle.UNKNOWN) {
-        var possSet = this.columnPossibilities[col];
-        for (var poss = possSet.length - 1; poss >= 0; poss--) {
-            if (answer !== possSet[poss][row]) {
-                possSet.splice(poss, 1);
+        var nodes = this.columnPossibilities[col].getNodesAtIndex(row);
+        for (var i = 0; i < nodes.length; i++) {
+            if (answer !== nodes[i].filled) {
+                nodes[i].removeSelfFromParent();
             }
         }
 
-        possSet = this.rowPossibilities[row];
-        for (var poss = possSet.length - 1; poss >= 0; poss--) {
-            if (answer !== possSet[poss][col]) {
-                possSet.splice(poss, 1);
+        nodes = this.rowPossibilities[row].getNodesAtIndex(col);
+        for (var i = 0; i < nodes.length; i++) {
+            if (answer !== nodes[i].filled) {
+                nodes[i].removeSelfFromParent();
             }
         }
     }
@@ -127,14 +128,14 @@ Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
  */
 Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, updated) {
     if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
-        var answer = findCommonPossibility(this.columnPossibilities[col], row);
+        var answer = this.columnPossibilities[col].findCommonPossibility(row);
         if (answer !== Puzzle.UNKNOWN) {
             this.puzzle.setSolutionAt(col, row, answer);
             updated = true;
         }
     }
     if (this.puzzle.getSolutionAt(col, row) === Puzzle.UNKNOWN) {
-        var answer = findCommonPossibility(this.rowPossibilities[row], col);
+        var answer = this.rowPossibilities[row].findCommonPossibility(col);
         if (answer !== Puzzle.UNKNOWN) {
             this.puzzle.setSolutionAt(col, row, answer);
             updated = true;
@@ -148,7 +149,7 @@ Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, up
     } else if (nextCol < this.puzzle.getColumnCount()) {
         setTimeout(this.fillSolutionFromPossibilitiesIteration.bind(this), 0, nextCol, 0, updated);
     } else if (updated) {
-        this.updateStatus("Eliminating impossibilities.");
+        this.updateStatus("Cross referencing.");
         setTimeout(this.removeImpossibilitiesIteration.bind(this), 0, 0, 0);
     } else {
         setTimeout(this.updateStatus.bind(this), 0, "Finished");
@@ -192,7 +193,7 @@ function findCommonPossibility(possibilities, index) {
  *
  * @param {Array} data
  * @param {number} totalLength
- * @returns {Array|createPossibilities.toReturn}
+ * @returns {PossibilityTree}
  */
 function assemblePossibilities(data, totalLength) {
     var filledSegments = data.length;
@@ -225,37 +226,7 @@ function assemblePossibilities(data, totalLength) {
         }
     }
 
-    return createPossibilities(data, e);
-}
-
-/**
- * Given a row or column and the possible empty segments, put together all the
- * possible solutions.
- *
- * @param {type} data
- * @param {Array} empties
- * @returns {Array|createPossibilities.toReturn}
- */
-function createPossibilities(data, empties) {
-    var toReturn = [];
-    empties.forEach(function (empty) {
-        var possibility = [];
-        toReturn.push(possibility);
-        var copy = data.slice(0);
-        for (var i = 0; i < empty.length; i++) {
-            while (empty[i] > 0) {
-                possibility.push(Puzzle.EMPTY);
-                empty[i]--;
-            }
-            if (i < copy.length) {
-                while (copy[i] > 0) {
-                    possibility.push(Puzzle.FILLED);
-                    copy[i]--;
-                }
-            }
-        }
-    });
-    return toReturn;
+    return new PossibilityTree(data, e);
 }
 
 /**
