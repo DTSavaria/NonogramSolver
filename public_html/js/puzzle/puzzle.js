@@ -142,10 +142,14 @@ Puzzle.prototype.toGridString = function (
     for (var i = 0; i < columnMatrix[0].length; i++) {
         toReturn += startRow;
         for (var j = 0; j < rowLength; j++) {
-            toReturn += startElement + ' ' + endElement;
+            toReturn += startElement + '~~' + endElement;
         }
         columnMatrix.forEach(function (column) {
-            toReturn += startElement + padTwo(column[i]) + endElement;
+            var number = '';
+            if (column[i] > 0) {
+                number = padTwo(column[i]);
+            }
+            toReturn += startElement + number + endElement;
         });
         toReturn += endRow;
     }
@@ -153,7 +157,11 @@ Puzzle.prototype.toGridString = function (
     for (var i = 0; i < rowMatrix.length; i++) {
         toReturn += startRow;
         rowMatrix[i].forEach(function (element) {
-            toReturn += startElement + padTwo(element) + endElement;
+            var number = '';
+            if (element > 0) {
+                number = padTwo(element);
+            }
+            toReturn += startElement + number + endElement;
         });
         for (var j = 0; j < this.solution[i].length; j++) {
             toReturn += startElement;
@@ -269,6 +277,6 @@ function vectorToMatrix(vector) {
 }
 
 function padTwo(numberLessThan100) {
-    var pad = "00";
+    var pad = "\xa0\xa0";
     return (pad + numberLessThan100).slice(-pad.length);
 }
