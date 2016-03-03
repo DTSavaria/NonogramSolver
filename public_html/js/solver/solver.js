@@ -8,8 +8,9 @@
  * @param {Puzzle} puzzle
  * @returns {Solver}
  */
-var Solver = function (puzzle) {
+var Solver = function (puzzle, possibilityConstructor) {
     this.puzzle = puzzle;
+    this.possibilityConstructor = possibilityConstructor;
     this.statusCallback = null;
     this.finalCallback = null;
     this.rowPossibilities = [];
@@ -44,7 +45,7 @@ Solver.prototype.solve = function (solverCallback, statusCallback, finalCallback
  */
 Solver.prototype.setupRowIteration = function (row) {
     this.updateStatus("Analyzing row: " + (row + 1) + " / " + this.puzzle.getRowCount());
-    this.rowPossibilities.push(assemblePossibilities(
+    this.rowPossibilities.push(this.assemblePossibilities(
             this.puzzle.getRow(row), this.puzzle.getWidth()));
     var next = row + 1;
     if (next < this.puzzle.getRowCount()) {
@@ -64,7 +65,7 @@ Solver.prototype.setupRowIteration = function (row) {
  */
 Solver.prototype.setupColumnIteration = function (col) {
     this.updateStatus("Analyzing column: " + (col + 1) + " / " + this.puzzle.getColumnCount());
-    this.columnPossibilities.push(assemblePossibilities(
+    this.columnPossibilities.push(this.assemblePossibilities(
             this.puzzle.getColumn(col), this.puzzle.getHeight()));
     var next = col + 1;
     if (next < this.puzzle.getColumnCount()) {
@@ -88,19 +89,8 @@ Solver.prototype.setupColumnIteration = function (col) {
 Solver.prototype.removeImpossibilitiesIteration = function (col, row) {
     var answer = this.puzzle.getSolutionAt(col, row);
     if (answer !== Puzzle.UNKNOWN) {
-        var nodes = this.columnPossibilities[col].getNodesAtIndex(row);
-        for (var i = 0; i < nodes.length; i++) {
-            if (answer !== nodes[i].filled) {
-                nodes[i].removeSelfFromParent();
-            }
-        }
-
-        nodes = this.rowPossibilities[row].getNodesAtIndex(col);
-        for (var i = 0; i < nodes.length; i++) {
-            if (answer !== nodes[i].filled) {
-                nodes[i].removeSelfFromParent();
-            }
-        }
+        this.columnPossibilities[col].removeConflicts(answer, row);
+        this.rowPossibilities[row].removeConflicts(answer, col);
     }
 
     var nextCol = col + 1;
@@ -172,30 +162,13 @@ Solver.prototype.updateStatus = function (statusMessage) {
 };
 
 /**
- * A helper function for fillSolutionFromPossibilitiesIteration
- * @param {Array} possibilities
- * @param {number} index
- * @returns {Number}
- */
-function findCommonPossibility(possibilities, index) {
-    var toReturn = possibilities[0][index];
-    for (var i = 0; i < possibilities.length; i++) {
-        if (possibilities[i][index] !== toReturn) {
-            toReturn = Puzzle.UNKNOWN;
-            break;
-        }
-    }
-    return toReturn;
-}
-
-/**
  * Creates all of the possible solutions for a given row or column.
  *
  * @param {Array} data
  * @param {number} totalLength
- * @returns {PossibilityTree}
+ * @returns {type}
  */
-function assemblePossibilities(data, totalLength) {
+Solver.prototype.assemblePossibilities = function (data, totalLength) {
     var filledSegments = data.length;
     var filled = data.reduce(function (a, b) {
         return a + b;
@@ -226,8 +199,8 @@ function assemblePossibilities(data, totalLength) {
         }
     }
 
-    return new PossibilityTree(data, e);
-}
+    return this.possibilityConstructor(data, e);
+};
 
 /**
  * This recursive function takes the  number of empty squares to distribute, the

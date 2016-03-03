@@ -39,6 +39,10 @@ var PossibilityTree = function (filled, empties) {
     }, this);
 };
 
+PossibilityTree.prototype.getNewInstance = function (filled, empties) {
+    return new PossibilityTree(filled, empties);
+};
+
 PossibilityTree.prototype.findCommonPossibility = function (index) {
     var nodes = this.getNodesAtIndex(index);
     var filled = nodes[0].filled;
@@ -48,6 +52,15 @@ PossibilityTree.prototype.findCommonPossibility = function (index) {
         }
     }
     return filled;
+};
+
+PossibilityTree.prototype.removeConflicts = function (answer, index) {
+    var nodes = this.getNodesAtIndex(index);
+    for (var i = 0; i < nodes.length; i++) {
+        if (answer !== nodes[i].filled) {
+            nodes[i].removeSelfFromParent();
+        }
+    }
 };
 
 PossibilityTree.prototype.getNodesAtIndex = function (index) {
@@ -67,5 +80,3 @@ function getNodesAtIndexHelper(index, start, nodes) {
 
     return toReturn;
 }
-;
-
