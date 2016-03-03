@@ -14,6 +14,8 @@ Released under the MIT license
         <script type="text/javascript" src="js/solver/tree/PossibilityTreeNode.js"></script>
         <script type="text/javascript" src="js/solver/tree/PossibilityTree.js"></script>
 
+        <script type="text/javascript" src="js/solver/list/PossibilityList.js"></script>
+
         <script type="text/javascript" src="js/solver/solver.js"></script>
     </head>
     <body style="font-family: 'Courier New', Courier, monospace;">
@@ -51,6 +53,7 @@ Released under the MIT license
 
             function solveIt() {
                 var solver = new Solver(puzzle, PossibilityTree.prototype.getNewInstance);
+                //var solver = new Solver(puzzle, PossibilityList.prototype.getNewInstance);
                 solver.solve(
                         function () {
                             puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
