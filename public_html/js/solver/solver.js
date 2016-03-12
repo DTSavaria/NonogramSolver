@@ -6,6 +6,7 @@
 /**
  *
  * @param {Puzzle} puzzle
+ * @param {Function} possibilityConstructor
  * @returns {Solver}
  */
 var Solver = function (puzzle, possibilityConstructor) {
@@ -20,15 +21,33 @@ var Solver = function (puzzle, possibilityConstructor) {
 /**
  * Solve the puzzle.
  *
- * @param {function} solverCallback
+ * @param {function} updateCallback
+ * @param {type} uCallbackThis
  * @param {function} statusCallback
+ * @param {type} sCallbackThis
  * @param {function} finalCallback
+ * @param {type} fCallbackThis
  * @returns {undefined}
  */
-Solver.prototype.solve = function (solverCallback, statusCallback, finalCallback) {
-    this.puzzle.setUpdateCallback(solverCallback);
-    this.statusCallback = statusCallback;
-    this.finalCallback = finalCallback;
+Solver.prototype.solve = function (
+        updateCallback, uCallbackThis,
+        statusCallback, sCallbackThis,
+        finalCallback, fCallbackThis) {
+    this.puzzle.setUpdateCallback(updateCallback, uCallbackThis);
+
+    if (statusCallback && typeof (statusCallback) === "function") {
+        this.statusCallback = statusCallback;
+    } else {
+        this.statusCallback = null;
+    }
+    this.sCallbackThis = sCallbackThis;
+
+    if (finalCallback && typeof (finalCallback) === "function") {
+        this.finalCallback = finalCallback;
+    } else {
+        this.finalCallback = null;
+    }
+    this.fCallbackThis = fCallbackThis;
 
     this.rowPossibilities = [];
     this.columnPossibilities = [];
@@ -143,8 +162,8 @@ Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, up
         setTimeout(this.removeImpossibilitiesIteration.bind(this), 0, 0, 0);
     } else {
         setTimeout(this.updateStatus.bind(this), 0, "Finished");
-        if (this.finalCallback && typeof (this.finalCallback) === "function") {
-            this.finalCallback();
+        if (this.finalCallback) {
+            this.finalCallback.call(this.fCallbackThis);
         }
     }
 };
@@ -156,8 +175,8 @@ Solver.prototype.fillSolutionFromPossibilitiesIteration = function (col, row, up
  * @returns {undefined}
  */
 Solver.prototype.updateStatus = function (statusMessage) {
-    if (this.statusCallback && typeof (this.statusCallback) === "function") {
-        this.statusCallback(statusMessage);
+    if (this.statusCallback) {
+        this.statusCallback.call(this.sCallbackThis, statusMessage);
     }
 };
 

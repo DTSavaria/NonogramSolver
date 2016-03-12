@@ -12,7 +12,7 @@
  * @param {type} columns
  * @returns {Puzzle}
  */
-var Puzzle = function (rows, columns) {
+var Puzzle = function (columns, rows) {
     this.rows = rows;
     this.columns = columns;
     this.solution = new Array(this.rows.length);
@@ -23,6 +23,7 @@ var Puzzle = function (rows, columns) {
         }
     }
     this.updateCallback = null;
+    this.uCallbackThis = null;
 };
 
 /**
@@ -42,9 +43,14 @@ Puzzle.FILLED = 2;
  */
 Puzzle.UNKNOWN = 3;
 
-Puzzle.prototype.setUpdateCallback = function (updateCallback) {
-    this.updateCallback = updateCallback;
-}
+Puzzle.prototype.setUpdateCallback = function (updateCallback, uCallbackThis) {
+    if (updateCallback && typeof (updateCallback) === "function") {
+        this.updateCallback = updateCallback;
+    } else {
+        this.updateCallback = null;
+    }
+    this.uCallbackThis = uCallbackThis;
+};
 
 /**
  * Get the number of columns.
@@ -115,8 +121,8 @@ Puzzle.prototype.getSolutionAt = function (column, row) {
  */
 Puzzle.prototype.setSolutionAt = function (column, row, value) {
     this.solution[column][row] = value;
-    if (this.updateCallback && typeof (this.updateCallback) === "function") {
-        this.updateCallback(column, row, value);
+    if (this.updateCallback) {
+        this.updateCallback.call(this.uCallbackThis, column, row, value);
     }
 };
 

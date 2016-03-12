@@ -11,6 +11,8 @@ Released under the MIT license
 
         <script type="text/javascript" src="js/puzzle/puzzle.js"></script>
 
+        <script type="text/javascript" src="js/display/puzzleDisplay.js"></script>
+
         <script type="text/javascript" src="js/solver/tree/PossibilityTreeNode.js"></script>
         <script type="text/javascript" src="js/solver/tree/PossibilityTree.js"></script>
 
@@ -28,44 +30,42 @@ Released under the MIT license
             </p>
         </div>
         <div>Status: <span id="statusSpan"></span></div>
-        <div id="puzzle"></div>
+        <div id ="puzzleDiv"></div>
         <script>
 
             var rows = [[8], [12], [3, 3], [3, 3], [3, 3], [2, 2, 2, 2], [2, 10, 2], [2, 10, 2], [2, 12, 2], [2, 12, 2], [2, 12, 2], [2, 12, 2], [2, 10, 2], [2, 2, 8, 2], [2, 2, 5, 2], [3, 8, 3], [3, 7, 3], [3, 6, 3], [12], [8]];
             var columns = [[8], [12], [3, 3], [3, 1, 3], [3, 4, 2, 3], [2, 8, 2, 2], [2, 9, 2, 2], [2, 14], [2, 14], [2, 14], [2, 14], [2, 14], [2, 8, 5], [2, 9, 2], [2, 8, 2], [3, 4, 3], [3, 3], [3, 3], [12], [8]];
 
             var puzzle = null;
+            var puzzleDisplay;
 
             var message = document.getElementById("message");
-            var puzzleDiv = document.getElementById("puzzle");
             var statusSpan = document.getElementById("statusSpan");
 
             clearIt();
 
             function clearIt() {
-                puzzle = new Puzzle(rows, columns);
+                puzzle = new Puzzle(columns, rows);
                 message.innerHTML = "<p> Puzzle loaded:</p>"
                         + "<p>rows: " + puzzle.rowsToString() + "</p>"
                         + "<p>columns: " + puzzle.columnsToString() + "</p>";
                 statusSpan.innerHTML = "Not started.";
-                puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+                puzzleDisplay = new PuzzleDisplay(document.getElementById("puzzleDiv"), puzzle);
             }
 
             function solveIt() {
+
+
+
                 var solver = new Solver(puzzle, PossibilityTree.prototype.getNewInstance);
                 //var solver = new Solver(puzzle, PossibilityList.prototype.getNewInstance);
                 solver.solve(
-                        function () {
-                            puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
-                        },
+                        puzzleDisplay.setSolutionCell, puzzleDisplay,
                         function (status) {
                             statusSpan.innerHTML = status;
-                        },
-                        function () {
-                            puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
-                        }
-                );
-                puzzleDiv.innerHTML = "<p>" + puzzle.toHtmlTable() + "</p>";
+                        }, this,
+                        null, this
+                        );
             }
 
         </script>
