@@ -35,22 +35,25 @@ PuzzleDisplay.prototype.initialize = function () {
     var rowCount = this.rowOffset + rowMatrix.length;
     var colCount = this.columnOffset + colMatrix.length;
 
+    var unknownClass = solutionValueToClassName(Puzzle.UNKNOWN);
+
     for (var i = 0; i < rowCount; i++) {
         var row = this.htmlTable.insertRow(-1);
         for (var j = 0; j < colCount; j++) {
-            cell = row.insertCell(-1);
+            var cell = row.insertCell(-1);
+            cell.className = unknownClass;
         }
     }
 
     for (var i = 0; i < colMatrix.length; i++) {
         for (var j = 0; j < colMatrix[i].length; j++) {
-            this.setRaw(i + this.columnOffset, j, padTwo(colMatrix[i][j]));
+            this.setInnerHTML(i + this.columnOffset, j, padTwo(colMatrix[i][j]));
         }
     }
 
     for (var i = 0; i < rowMatrix.length; i++) {
         for (var j = 0; j < rowMatrix[i].length; j++) {
-            this.setRaw(j, i + this.rowOffset, padTwo(rowMatrix[i][j]));
+            this.setInnerHTML(j, i + this.rowOffset, padTwo(rowMatrix[i][j]));
         }
     }
 };
@@ -68,12 +71,11 @@ PuzzleDisplay.prototype.setSolutionCell = function (puzzleColumn, puzzleRow, sol
     var row = puzzleRow + this.rowOffset;
     var str;
     if (solution) {
-        str = solutionValueToString(solution);
+        str = solutionValueToClassName(solution);
     } else {
-        str = solutionValueToString(this.puzzle.getSolutionAt(puzzleColumn, puzzleRow));
+        str = solutionValueToClassName(this.puzzle.getSolutionAt(puzzleColumn, puzzleRow));
     }
-    str += str;
-    this.setRaw(col, row, str);
+    this.setClass(col, row, str);
 };
 
 /**
@@ -83,7 +85,12 @@ PuzzleDisplay.prototype.setSolutionCell = function (puzzleColumn, puzzleRow, sol
  * @param {type} value
  * @returns {undefined}
  */
-PuzzleDisplay.prototype.setRaw = function (column, row, value) {
+PuzzleDisplay.prototype.setInnerHTML = function (column, row, value) {
     var cell = this.htmlTable.rows[row].cells[column];
     cell.innerHTML = value;
+};
+
+PuzzleDisplay.prototype.setClass = function (column, row, className) {
+    var cell = this.htmlTable.rows[row].cells[column];
+    cell.className = className;
 };

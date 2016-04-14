@@ -248,6 +248,22 @@ function solutionValueToString(value) {
     return toReturn;
 }
 
+function solutionValueToClassName(value) {
+    var toReturn = "";
+    switch (value) {
+        case Puzzle.UNKNOWN:
+            toReturn = "unknown_value";
+            break;
+        case Puzzle.FILLED:
+            toReturn = "filled_value";
+            break;
+        case Puzzle.EMPTY:
+            toReturn = "empty_value";
+            break;
+    }
+    return toReturn;
+}
+
 function vectorToString(vector, depth) {
     var toReturn = "[";
     vector.forEach(function (entry) {

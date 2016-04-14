@@ -9,6 +9,8 @@ Released under the MIT license
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+        <link rel="stylesheet" type="text/css" href="css/base.css">
+
         <script type="text/javascript" src="js/puzzle/puzzle.js"></script>
 
         <script type="text/javascript" src="js/display/puzzleDisplay.js"></script>
@@ -20,7 +22,7 @@ Released under the MIT license
 
         <script type="text/javascript" src="js/solver/solver.js"></script>
     </head>
-    <body style="font-family: 'Courier New', Courier, monospace;">
+    <body>
         <div>Nonogram Solver</div>
         <div id="message"></div>
         <div>
@@ -46,9 +48,9 @@ Released under the MIT license
 
             function clearIt() {
                 puzzle = new Puzzle(columns, rows);
-                message.innerHTML = "<p> Puzzle loaded:</p>"
-                        + "<p>rows: " + puzzle.rowsToString() + "</p>"
-                        + "<p>columns: " + puzzle.columnsToString() + "</p>";
+                //message.innerHTML = "<p> Puzzle loaded:</p>"
+                //        + "<p>rows: " + puzzle.rowsToString() + "</p>"
+                //        + "<p>columns: " + puzzle.columnsToString() + "</p>";
                 statusSpan.innerHTML = "Not started.";
                 puzzleDisplay = new PuzzleDisplay(document.getElementById("puzzleDiv"), puzzle);
             }

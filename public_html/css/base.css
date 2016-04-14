@@ -1,0 +1,25 @@
+
+/*
+(c) 2016 Daniel Savaria
+Released under the MIT license
+*/
+
+body {
+    font-family: "Courier New", Courier, monospace;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td.unknown_value {
+    background-color: whitesmoke;
+}
+
+td.filled_value {
+    background-color: #3399CC;
+}
+
+td.empty_value {
+    background-color: #AAAAAA;
+}
